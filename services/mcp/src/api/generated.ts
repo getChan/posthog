@@ -121770,6 +121770,11 @@ export namespace Schemas {
          * @nullable
          */
       draft_description: string | null;
+      /**
+         * Proposed HogQL definition, when one was drafted.
+         * @nullable
+         */
+      draft_definition: string | null;
     }
 
     export interface UnquarantineQuery {

@@ -587,6 +587,9 @@ class UncoveredGroupSerializer(serializers.Serializer):
     draft_description = serializers.CharField(
         allow_null=True, help_text="Proposed metric description, when one was drafted."
     )
+    draft_definition = serializers.CharField(
+        allow_null=True, help_text="Proposed HogQL definition, when one was drafted."
+    )
 
 
 class UsageSnapshotPayloadSerializer(serializers.Serializer):
