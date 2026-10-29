@@ -121358,14 +121358,35 @@ export namespace Schemas {
     }
 
     export interface TopicCluster {
-      /** Short name of the topic, written by a model from sample intents. */
+      /** Short name of the subject. 'Other' holds the sessions that fit no topic. */
       title: string;
-      /** Agent sessions in the topic. Scout sessions are not clustered. */
+      /** One sentence on what the topic covers. */
+      description: string;
+      /** Agent sessions in the topic. Scout sessions are not included. */
       session_count: number;
+      /** Distinct people behind the topic's sessions. */
+      people: number;
       /** How the topic's sessions got their numbers. */
       coverage: TopicCoverage;
-      /** A few intents from the topic's sessions. */
-      sample_intents: string[];
+      /** A few questions from the topic's sessions, written by a model. */
+      sample_questions: string[];
+    }
+
+    export interface TopicSessionCounts {
+      /** Sampled sessions that asked a question of the data. */
+      analysis: number;
+      /** Sampled sessions that worked on one customer's request. */
+      support: number;
+      /** Sampled sessions that investigated a failure or an incident. */
+      debugging: number;
+      /** Sampled sessions that read one record, one setting, or a schema. */
+      lookup: number;
+      /** Sampled sessions from a scheduled or repeated job. */
+      automation: number;
+      /** Sampled sessions whose intents did not show what the person wanted. */
+      unclear: number;
+      /** Sampled sessions that the model failed to read. */
+      unread: number;
     }
 
     export type TraceNodeIdsByAlias = {[key: string]: string};
@@ -121995,10 +122016,12 @@ export namespace Schemas {
          */
       adjusted_runs: AdjustedRun[] | null;
       /**
-         * Agent session topics. Null until clustered.
+         * Agent session topics. Null until grouped.
          * @nullable
          */
       topics: TopicCluster[] | null;
+      /** What the sampled sessions were about, by kind. Null until grouped. */
+      topic_sessions: TopicSessionCounts | null;
       /**
          * Recurring query shapes and their catalog outcome. Null until grouped.
          * @nullable

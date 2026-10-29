@@ -85,9 +85,24 @@ class TopicCoverage:
 @dataclass(frozen=True)
 class TopicCluster:
     title: str
+    description: str
     session_count: int
+    people: int
     coverage: TopicCoverage
-    sample_intents: list[str]
+    sample_questions: list[str]
+
+
+@dataclass(frozen=True)
+class TopicSessionCounts:
+    """What the sampled sessions were about. Only analysis and support sessions fall into topics."""
+
+    analysis: int
+    support: int
+    debugging: int
+    lookup: int
+    automation: int
+    unclear: int
+    unread: int
 
 
 @dataclass(frozen=True)
@@ -120,6 +135,7 @@ class UsageSnapshotPayload:
     metric_runs: list[MetricRunCounts] | None = None
     adjusted_runs: list[AdjustedRun] | None = None
     topics: list[TopicCluster] | None = None
+    topic_sessions: TopicSessionCounts | None = None
     uncovered: list[UncoveredGroup] | None = None
 
 

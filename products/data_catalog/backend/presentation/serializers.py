@@ -545,12 +545,24 @@ class TopicCoverageSerializer(serializers.Serializer):
 
 
 class TopicClusterSerializer(serializers.Serializer):
-    title = serializers.CharField(help_text="Short name of the topic, written by a model from sample intents.")
-    session_count = serializers.IntegerField(help_text="Agent sessions in the topic. Scout sessions are not clustered.")
+    title = serializers.CharField(help_text="Short name of the subject. 'Other' holds the sessions that fit no topic.")
+    description = serializers.CharField(allow_blank=True, help_text="One sentence on what the topic covers.")
+    session_count = serializers.IntegerField(help_text="Agent sessions in the topic. Scout sessions are not included.")
+    people = serializers.IntegerField(help_text="Distinct people behind the topic's sessions.")
     coverage = TopicCoverageSerializer(help_text="How the topic's sessions got their numbers.")
-    sample_intents = serializers.ListField(
-        child=serializers.CharField(), help_text="A few intents from the topic's sessions."
+    sample_questions = serializers.ListField(
+        child=serializers.CharField(), help_text="A few questions from the topic's sessions, written by a model."
     )
+
+
+class TopicSessionCountsSerializer(serializers.Serializer):
+    analysis = serializers.IntegerField(help_text="Sampled sessions that asked a question of the data.")
+    support = serializers.IntegerField(help_text="Sampled sessions that worked on one customer's request.")
+    debugging = serializers.IntegerField(help_text="Sampled sessions that investigated a failure or an incident.")
+    lookup = serializers.IntegerField(help_text="Sampled sessions that read one record, one setting, or a schema.")
+    automation = serializers.IntegerField(help_text="Sampled sessions from a scheduled or repeated job.")
+    unclear = serializers.IntegerField(help_text="Sampled sessions whose intents did not show what the person wanted.")
+    unread = serializers.IntegerField(help_text="Sampled sessions that the model failed to read.")
 
 
 class UncoveredGroupSerializer(serializers.Serializer):
@@ -584,7 +596,10 @@ class UsageSnapshotPayloadSerializer(serializers.Serializer):
     adjusted_runs = AdjustedRunSerializer(
         many=True, allow_null=True, help_text="Agent queries that re-derived a metric. Null until judged."
     )
-    topics = TopicClusterSerializer(many=True, allow_null=True, help_text="Agent session topics. Null until clustered.")
+    topics = TopicClusterSerializer(many=True, allow_null=True, help_text="Agent session topics. Null until grouped.")
+    topic_sessions = TopicSessionCountsSerializer(
+        allow_null=True, help_text="What the sampled sessions were about, by kind. Null until grouped."
+    )
     uncovered = UncoveredGroupSerializer(
         many=True, allow_null=True, help_text="Recurring query shapes and their catalog outcome. Null until grouped."
     )
