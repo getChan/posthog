@@ -174,8 +174,8 @@ const ROOTS = [
     {
         root: 'src/scenes/dashboard/Dashboard.tsx',
         label: 'dashboard scene',
-        // 2026-10-11: 9.33 MiB (3529 files), stable CSS included. ~10% headroom.
-        budgetBytes: 10_500_000,
+        // 2026-11-02: 8.56 MiB, stable CSS included. ~0.3% headroom.
+        budgetBytes: 9_000_000,
         forbidden: [
             // Neither scene plays recordings. A hit means a static import pulled the playlist and player onto it.
             'src/scenes/session-recordings/playlist/SessionRecordingsPlaylist.tsx',
@@ -185,6 +185,9 @@ const ROOTS = [
             // The generated schema validators serve web analytics URL filters. A hit means the web
             // analytics editor filters became a static import of the insight editor.
             'src/queries/validators.js',
+            // Query loads each node renderer in its own chunk. The debug renderers draw only on the debug scene.
+            'src/scenes/debug/HogDebug.tsx',
+            'src/queries/QueryEditor/QueryEditor.tsx',
         ],
     },
     {
@@ -227,8 +230,8 @@ const ROOTS = [
     {
         root: 'src/scenes/activity/explore/EventsScene.tsx',
         label: 'events scene',
-        // 2026-10-11: 8.92 MiB (3373 files), stable CSS included. ~10% headroom.
-        budgetBytes: 10_055_000,
+        // 2026-11-02: 7.52 MiB, stable CSS included. ~0.3% headroom.
+        budgetBytes: 7_915_000,
         forbidden: [
             // Neither scene plays recordings. A hit means a static import pulled the playlist and player onto it.
             'src/scenes/session-recordings/playlist/SessionRecordingsPlaylist.tsx',
@@ -238,17 +241,26 @@ const ROOTS = [
             // The generated schema validators serve web analytics URL filters. A hit means the web
             // analytics editor filters became a static import of the insight editor.
             'src/queries/validators.js',
+            // The scene draws only a data table. Query loads every other node renderer in its own chunk.
+            'src/queries/nodes/InsightViz/InsightViz.tsx',
+            'src/queries/nodes/DataVisualization/DataVisualization.tsx',
+            'src/queries/nodes/WebOverview/WebOverview.tsx',
+            'src/scenes/debug/HogDebug.tsx',
+            'src/queries/QueryEditor/QueryEditor.tsx',
         ],
     },
     {
         root: 'src/scenes/web-analytics/WebAnalyticsScene.tsx',
         label: 'web analytics scene',
-        // 2026-10-17: 9.85 MiB (3651 files), stable CSS included. ~10% headroom.
-        budgetBytes: 11_360_000,
+        // 2026-11-02: 8.57 MiB, stable CSS included. ~0.3% headroom.
+        budgetBytes: 9_015_000,
         forbidden: [
             // Only the live tab renders this dashboard. Its world map holds about 1 MiB of country shapes.
             'src/scenes/web-analytics/LiveMetricsDashboard/LiveWebAnalyticsMetrics.tsx',
             'products/product_analytics/frontend/insights/trends/WorldMap/countryVectors.tsx',
+            // Query loads each node renderer in its own chunk. The debug renderers draw only on the debug scene.
+            'src/scenes/debug/HogDebug.tsx',
+            'src/queries/QueryEditor/QueryEditor.tsx',
         ],
     },
     {
