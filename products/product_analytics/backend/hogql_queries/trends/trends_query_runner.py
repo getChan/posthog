@@ -84,6 +84,7 @@ from posthog.utils import multisort
 from products.actions.backend.models.action import Action
 from products.cohorts.backend.models.cohort import Cohort
 from products.event_definitions.backend.models.property_definition import PropertyDefinition
+from products.product_analytics.backend.hogql_queries.trends.databricks import DatabricksTrends
 from products.product_analytics.backend.hogql_queries.trends.display import TrendsDisplay
 from products.product_analytics.backend.hogql_queries.trends.series_with_extras import SeriesWithExtras
 from products.product_analytics.backend.hogql_queries.trends.trend_validation_rules import (
@@ -416,6 +417,18 @@ class TrendsQueryRunner(AnalyticsQueryRunner[TrendsQueryResponse]):
         )
 
     def _calculate(self):
+        if DatabricksTrends.enabled(self.team.pk):
+            results, has_more = DatabricksTrends.calculate(self)
+            return TrendsQueryResponse(
+                results=results,
+                hasMore=has_more,
+                modifiers=self.modifiers,
+                resolved_date_range=ResolvedDateRangeResponse(
+                    date_from=self.query_date_range.date_from(),
+                    date_to=self.query_date_range.date_to(),
+                ),
+            )
+
         if self.query.marketingAnalyticsCostFallback is not None:
             from products.marketing_analytics.backend.facade.queries import (
                 resolve_marketing_cost_trend,  # noqa: PLC0415 - keeps marketing adapters off the startup path
