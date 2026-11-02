@@ -140,6 +140,10 @@ const ROOTS = [
             'src/layout/today/todayRailItems.tsx',
             // The pay gate loads the payment logic on click. It pulls in the billing product logic.
             'src/scenes/billing/paymentEntryLogic.ts',
+            // The cohort list loads the criteria normalizer with its first page. It pulls in the cohort row editor.
+            'src/scenes/cohorts/CohortFilters/constants.tsx',
+            // The persons scene listens for cohort reloads itself, so the cohorts model never imports it.
+            'products/persons/frontend/logics/personsLogic.tsx',
             // The rich text editor stack is for the scenes that edit text. Rendered markdown needs none of it.
             'node_modules/@tiptap/',
             'node_modules/prosemirror-',
