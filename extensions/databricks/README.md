@@ -42,16 +42,16 @@ The reference is PostHog commit `07507c09ac6a222e65616ff48256b1be82677b7d`, part
 
 | Table | Reference ClickHouse order | Delta liquid clustering |
 | --- | --- | --- |
-| Legacy events | team_id, toDate(timestamp), event, cityHash64(distinct_id), cityHash64(uuid) | team_id, timestamp, event |
-| JSON events | team_id, toDate(timestamp), event, cityHash64(distinct_id), timestamp, uuid | team_id, timestamp, event |
+| Legacy events | team_id, toDate(timestamp), event, cityHash64(distinct_id), cityHash64(uuid) | team_id, timestamp, event, distinct_id |
+| JSON events | team_id, toDate(timestamp), event, cityHash64(distinct_id), timestamp, uuid | team_id, timestamp, event, distinct_id |
 | Persons | team_id, id | team_id, id |
 | Person distinct IDs | team_id, distinct_id | team_id, distinct_id |
 | Groups | team_id, group_type_index, group_key | team_id, group_type_index, group_key |
 | Static cohorts | team_id, cohort_id, person_id, id | team_id, cohort_id, person_id |
 
-ClickHouse's ordered sparse primary index and Delta liquid clustering have different semantics. Liquid clustering does not preserve the ClickHouse lexicographic key, monthly partitions, SAMPLE BY or replacement identity. Copying the column list does not recreate that behavior. The event keys retain the tenant/time/event predicates; user hash and UUID suffixes are not copied. These are initial choices pending measurements with representative data. Key order does not define a leading-key hierarchy as it does in ClickHouse.
+ClickHouse's ordered sparse primary index and Delta liquid clustering have different semantics. Liquid clustering does not preserve the ClickHouse lexicographic key, monthly partitions, SAMPLE BY or replacement identity. Copying the column list does not recreate that behavior. The four event keys are `(team_id, timestamp, event, distinct_id)`. They retain tenant/time/event dimensions and the original user identifier. The ClickHouse user hash is represented by raw distinct_id; UUID remains an event identity column and is excluded from clustering. These choices still require measurements with representative data. Key order does not define a leading-key hierarchy as it does in ClickHouse.
 
-After loading data, run `OPTIMIZE workspace.posthog.events` or use predictive optimization. Changing keys does not rewrite existing files immediately. Avoid combining liquid clustering with partitions or ZORDER. For an existing source exposed through a view, optimize the underlying source table with its owner. Compare scanned bytes and latency before adding a user key or removing a constant team key.
+After loading data, run `OPTIMIZE workspace.posthog.events` or use predictive optimization. Changing keys does not rewrite existing files immediately. Avoid combining liquid clustering with partitions or ZORDER. For an existing source exposed through a view, optimize the underlying source table with its owner. Compare scanned bytes and latency for the four-key layout against the previous three-key layout before further tuning.
 
 Reference: [Databricks liquid clustering](https://docs.databricks.com/aws/en/tables/clustering).
 

@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS workspace.posthog.events (
     _timestamp TIMESTAMP,
     _offset DECIMAL(20,0),
     _partition DECIMAL(20,0)
-) USING DELTA CLUSTER BY (team_id, timestamp, event);
+) USING DELTA CLUSTER BY (team_id, timestamp, event, distinct_id);
 CREATE TABLE IF NOT EXISTS workspace.posthog.persons (
     team_id BIGINT NOT NULL, id STRING NOT NULL, properties STRING COMMENT 'JSON object',
     is_identified BOOLEAN, created_at TIMESTAMP, version BIGINT, is_deleted BOOLEAN, last_seen_at TIMESTAMP
