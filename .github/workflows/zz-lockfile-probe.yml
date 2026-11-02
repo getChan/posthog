@@ -1,0 +1,68 @@
+name: Lockfile probe
+
+on:
+    push:
+        branches:
+            - rauln/lockfile-probe
+
+permissions:
+    contents: read
+
+jobs:
+    control-direct-tag:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 5
+        steps:
+            - uses: actions/setup-node@v6.2.0
+
+    dollar-local-only:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 5
+        steps:
+            - uses: $/.github/actions/lp-local-only
+
+    dollar-locked-tag:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 5
+        steps:
+            - uses: $/.github/actions/lp-locked-tag
+
+    dot-local-only:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 5
+        steps:
+            - uses: actions/checkout@v6.0.2
+              with:
+                  sparse-checkout: .github/actions
+                  sparse-checkout-cone-mode: false
+            - uses: ./.github/actions/lp-local-only
+
+    dot-locked-tag:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 5
+        steps:
+            - uses: actions/checkout@v6.0.2
+              with:
+                  sparse-checkout: .github/actions
+                  sparse-checkout-cone-mode: false
+            - uses: ./.github/actions/lp-locked-tag
+
+    dot-sha:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 5
+        steps:
+            - uses: actions/checkout@v6.0.2
+              with:
+                  sparse-checkout: .github/actions
+                  sparse-checkout-cone-mode: false
+            - uses: ./.github/actions/lp-sha
+
+    dot-unlocked-tag:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 5
+        steps:
+            - uses: actions/checkout@v6.0.2
+              with:
+                  sparse-checkout: .github/actions
+                  sparse-checkout-cone-mode: false
+            - uses: ./.github/actions/lp-unlocked-tag

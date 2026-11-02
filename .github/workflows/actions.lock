@@ -6,6 +6,9 @@ workflows:
     '.github/workflows/ci-paths-filter.yml':
         - 'actions/checkout@v6.0.2'
         - 'actions/setup-node@v6.2.0'
+    '.github/workflows/zz-lockfile-probe.yml':
+        - 'actions/checkout@v6.0.2'
+        - 'actions/setup-node@v6.2.0'
 dependencies:
     'actions/checkout@v6.0.2':
         ref: 'v6.0.2'

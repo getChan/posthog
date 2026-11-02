@@ -1,0 +1,8 @@
+name: Lockfile probe, locked tag
+description: Throwaway probe. setup-node v6.2.0 is already in actions.lock.
+runs:
+    using: composite
+    steps:
+        - uses: actions/setup-node@v6.2.0
+        - shell: bash
+          run: echo "lp-locked-tag ran"

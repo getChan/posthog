@@ -1,0 +1,8 @@
+name: Lockfile probe, unlocked tag
+description: Throwaway probe. setup-node v6.1.0 is not in actions.lock.
+runs:
+    using: composite
+    steps:
+        - uses: actions/setup-node@v6.1.0
+        - shell: bash
+          run: echo "lp-unlocked-tag ran"

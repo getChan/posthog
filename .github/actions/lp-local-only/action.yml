@@ -1,0 +1,7 @@
+name: Lockfile probe, no remote actions
+description: Throwaway probe.
+runs:
+    using: composite
+    steps:
+        - shell: bash
+          run: echo "lp-local-only ran"
