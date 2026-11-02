@@ -174,9 +174,16 @@ const ROOTS = [
     {
         root: 'src/scenes/dashboard/Dashboard.tsx',
         label: 'dashboard scene',
-        // 2026-10-11: 9.33 MiB (3529 files), stable CSS included. ~10% headroom.
-        budgetBytes: 10_500_000,
+        // 2026-11-02: 9.02 MiB (3637 files), stable CSS included. ~4% headroom.
+        budgetBytes: 9_810_000,
         forbidden: [
+            // The rich text stack loads with the first text tile, comment or editor, through
+            // lib/components/RichContentEditor/LazyRichContent. A hit means a static import of an editor module.
+            'node_modules/@tiptap/',
+            'node_modules/prosemirror-',
+            'node_modules/marked/',
+            // The emoji picker loads with the editor that opens it.
+            'node_modules/frimousse/',
             // Neither scene plays recordings. A hit means a static import pulled the playlist and player onto it.
             'src/scenes/session-recordings/playlist/SessionRecordingsPlaylist.tsx',
             // Only web analytics insights render this tile. A hit means a static import put the web
@@ -227,9 +234,16 @@ const ROOTS = [
     {
         root: 'src/scenes/activity/explore/EventsScene.tsx',
         label: 'events scene',
-        // 2026-10-11: 8.92 MiB (3373 files), stable CSS included. ~10% headroom.
-        budgetBytes: 10_055_000,
+        // 2026-11-02: 8.45 MiB (3410 files), stable CSS included. ~6% headroom.
+        budgetBytes: 9_371_000,
         forbidden: [
+            // The rich text stack loads with the first text tile, comment or editor, through
+            // lib/components/RichContentEditor/LazyRichContent. A hit means a static import of an editor module.
+            'node_modules/@tiptap/',
+            'node_modules/prosemirror-',
+            'node_modules/marked/',
+            // The emoji picker loads with the editor that opens it.
+            'node_modules/frimousse/',
             // Neither scene plays recordings. A hit means a static import pulled the playlist and player onto it.
             'src/scenes/session-recordings/playlist/SessionRecordingsPlaylist.tsx',
             // Only web analytics insights render this tile. A hit means a static import put the web
@@ -243,9 +257,16 @@ const ROOTS = [
     {
         root: 'src/scenes/web-analytics/WebAnalyticsScene.tsx',
         label: 'web analytics scene',
-        // 2026-10-17: 9.85 MiB (3651 files), stable CSS included. ~10% headroom.
-        budgetBytes: 11_360_000,
+        // 2026-11-02: 9.41 MiB (3677 files), stable CSS included. ~8% headroom.
+        budgetBytes: 10_676_000,
         forbidden: [
+            // The rich text stack loads with the first text tile, comment or editor, through
+            // lib/components/RichContentEditor/LazyRichContent. A hit means a static import of an editor module.
+            'node_modules/@tiptap/',
+            'node_modules/prosemirror-',
+            'node_modules/marked/',
+            // The emoji picker loads with the editor that opens it.
+            'node_modules/frimousse/',
             // Only the live tab renders this dashboard. Its world map holds about 1 MiB of country shapes.
             'src/scenes/web-analytics/LiveMetricsDashboard/LiveWebAnalyticsMetrics.tsx',
             'products/product_analytics/frontend/insights/trends/WorldMap/countryVectors.tsx',
@@ -254,9 +275,14 @@ const ROOTS = [
     {
         root: 'src/scenes/session-recordings/detail/SessionRecordingDetail.tsx',
         label: 'replay detail scene',
-        // 2026-10-17: 8.61 MiB (3264 files), stable CSS included. ~10% headroom.
-        budgetBytes: 9_930_000,
+        // 2026-11-02: 7.13 MiB (2904 files), stable CSS included. ~10% headroom.
+        budgetBytes: 8_230_000,
         forbidden: [
+            // The rich text stack loads with the first text tile, comment or editor, through
+            // lib/components/RichContentEditor/LazyRichContent. A hit means a static import of an editor module.
+            'node_modules/@tiptap/',
+            'node_modules/prosemirror-',
+            'node_modules/marked/',
             // The player shows a snapshot of a few settings. A hit means it imports settingsLogic again,
             // which holds every settings page.
             'src/scenes/settings/SettingsMap.tsx',
