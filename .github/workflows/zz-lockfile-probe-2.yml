@@ -9,6 +9,12 @@ permissions:
     contents: read
 
 jobs:
+    direct-sha-with-tag-entry:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 5
+        steps:
+            - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+
     dot-tag-locked-only-by-other-workflow:
         runs-on: ubuntu-24.04
         timeout-minutes: 5
