@@ -37,6 +37,13 @@ const failForbiddenHits = process.argv.includes('--fail-forbidden-hits')
 // Budgets are eager output bytes (shipped JS + the stable build's CSS for the root, minified).
 // Ratchet policy: when a bundle-splitting win lands, lower the budget to lock it in;
 // raise a budget only as a conscious, reviewed decision in the PR that needs it.
+// The published @posthog/quill dist inlines a second copy of quill-primitives. The app resolves the
+// umbrella to its re-export source (root tsconfig paths), so a hit means that mapping stopped applying.
+const QUILL_UMBRELLA_DIST = {
+    pattern: 'packages/quill/packages/quill/dist/',
+    verifyPrefix: 'packages/quill/packages/primitives/dist/',
+}
+
 const ROOTS = [
     {
         root: ENTRY,
@@ -177,6 +184,7 @@ const ROOTS = [
         // 2026-10-11: 9.33 MiB (3529 files), stable CSS included. ~10% headroom.
         budgetBytes: 10_500_000,
         forbidden: [
+            QUILL_UMBRELLA_DIST,
             // Neither scene plays recordings. A hit means a static import pulled the playlist and player onto it.
             'src/scenes/session-recordings/playlist/SessionRecordingsPlaylist.tsx',
             // Only web analytics insights render this tile. A hit means a static import put the web
@@ -194,9 +202,10 @@ const ROOTS = [
             'src/scenes/project-homepage/today/TodayHome.tsx',
         ],
         label: 'today home path',
-        // 2026-11-02: 4.93 MiB, stable CSS included. ~0.3% headroom.
-        budgetBytes: 5_186_000,
+        // 2026-11-02: 4.84 MiB, stable CSS included. ~0.3% headroom.
+        budgetBytes: 5_092_000,
         forbidden: [
+            QUILL_UMBRELLA_DIST,
             'src/scenes/project-homepage/ai-first/AiFirstHomepage.tsx',
             'src/scenes/project-homepage/today/TodayReportPage.tsx',
             'src/queries/Query/Query.tsx',
@@ -215,6 +224,7 @@ const ROOTS = [
         // 2026-11-01: 6.39 MiB, stable CSS included. ~1% headroom.
         budgetBytes: 6_763_000,
         forbidden: [
+            QUILL_UMBRELLA_DIST,
             'products/posthog_ai/frontend/components/tool/widgets/VisualizationWidget.tsx',
             'products/posthog_ai/frontend/components/tool/widgets/RecordingsWidget.tsx',
             'src/queries/Query/Query.tsx',
@@ -230,6 +240,7 @@ const ROOTS = [
         // 2026-10-11: 8.92 MiB (3373 files), stable CSS included. ~10% headroom.
         budgetBytes: 10_055_000,
         forbidden: [
+            QUILL_UMBRELLA_DIST,
             // Neither scene plays recordings. A hit means a static import pulled the playlist and player onto it.
             'src/scenes/session-recordings/playlist/SessionRecordingsPlaylist.tsx',
             // Only web analytics insights render this tile. A hit means a static import put the web
@@ -246,6 +257,7 @@ const ROOTS = [
         // 2026-10-17: 9.85 MiB (3651 files), stable CSS included. ~10% headroom.
         budgetBytes: 11_360_000,
         forbidden: [
+            QUILL_UMBRELLA_DIST,
             // Only the live tab renders this dashboard. Its world map holds about 1 MiB of country shapes.
             'src/scenes/web-analytics/LiveMetricsDashboard/LiveWebAnalyticsMetrics.tsx',
             'products/product_analytics/frontend/insights/trends/WorldMap/countryVectors.tsx',
@@ -257,6 +269,7 @@ const ROOTS = [
         // 2026-10-17: 8.61 MiB (3264 files), stable CSS included. ~10% headroom.
         budgetBytes: 9_930_000,
         forbidden: [
+            QUILL_UMBRELLA_DIST,
             // The player shows a snapshot of a few settings. A hit means it imports settingsLogic again,
             // which holds every settings page.
             'src/scenes/settings/SettingsMap.tsx',
