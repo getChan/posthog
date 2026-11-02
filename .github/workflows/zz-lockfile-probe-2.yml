@@ -1,0 +1,20 @@
+name: Lockfile probe 2
+
+on:
+    push:
+        branches:
+            - rauln/lockfile-probe
+
+permissions:
+    contents: read
+
+jobs:
+    dot-tag-locked-only-by-other-workflow:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 5
+        steps:
+            - uses: actions/checkout@v6.0.2
+              with:
+                  sparse-checkout: .github/actions
+                  sparse-checkout-cone-mode: false
+            - uses: ./.github/actions/lp-locked-tag
