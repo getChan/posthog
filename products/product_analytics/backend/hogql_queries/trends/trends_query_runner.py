@@ -430,9 +430,7 @@ class TrendsQueryRunner(AnalyticsQueryRunner[TrendsQueryResponse]):
             )
 
         if self.query.marketingAnalyticsCostFallback is not None:
-            from products.marketing_analytics.backend.facade.queries import (
-                resolve_marketing_cost_trend,  # noqa: PLC0415 - keeps marketing adapters off the startup path
-            )
+            from products.marketing_analytics.backend.facade.queries import resolve_marketing_cost_trend  # noqa: PLC0415 - keeps marketing adapters off the startup path
 
             date_ranges = [self.query_date_range]
             if self.query.compareFilter and self.query.compareFilter.compare:
