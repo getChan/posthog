@@ -3769,6 +3769,7 @@ class SandboxSession(TeamScopedRootMixin, UUIDModel):
     class EndedReason(models.TextChoices):
         CLEANUP = "cleanup", "Cleanup"
         REAPED = "reaped", "Reaped"
+        TTL_SWEEP = "ttl_sweep", "TTL sweep"
 
     # db_constraint=False on the team FK: adding an FK constraint to that hot table
     # locks it and stalls deploys; Django still enforces the relation and on_delete at
@@ -3847,6 +3848,22 @@ class SandboxSession(TeamScopedRootMixin, UUIDModel):
     provider_usage_measured_at = models.DateTimeField(
         null=True, blank=True, help_text="When provider resource usage was sampled"
     )
+    compute_settled_at = models.DateTimeField(
+        null=True, blank=True, help_text="When the session's compute was settled on the gateway ledger"
+    )
+    compute_settled_usd = models.DecimalField(
+        max_digits=20, decimal_places=6, null=True, blank=True, help_text="Compute amount the ledger recorded"
+    )
+    compute_ledger_entry_id = models.CharField(
+        max_length=64, blank=True, default="", help_text="Gateway ledger entry id of the compute debit"
+    )
+    compute_settle_attempts = models.PositiveIntegerField(default=0, help_text="Retryable settlement failures so far")
+    compute_settle_conflict_at = models.DateTimeField(
+        null=True, blank=True, help_text="When the gateway refused the debit for good; the sweep skips the row"
+    )
+    compute_settle_error = models.CharField(
+        max_length=200, blank=True, default="", help_text="Last terminal settlement error"
+    )
 
     class Meta:
         db_table = "posthog_task_sandbox_session"
@@ -3863,6 +3880,24 @@ class SandboxSession(TeamScopedRootMixin, UUIDModel):
             ),
             # For per-team/per-origin re-aggregation once pricing decides which origins bill.
             models.Index(fields=["team", "user_attributed_at"], name="sandbox_session_team_attr_idx"),
+            models.Index(
+                fields=["ttl_expires_at"],
+                condition=models.Q(
+                    compute_settled_at__isnull=True,
+                    compute_settle_conflict_at__isnull=True,
+                    user_attributed_at__isnull=False,
+                ),
+                name="sandbox_session_settle_ttl_idx",
+            ),
+            models.Index(
+                fields=["ended_at"],
+                condition=models.Q(
+                    compute_settled_at__isnull=True,
+                    compute_settle_conflict_at__isnull=True,
+                    user_attributed_at__isnull=False,
+                ),
+                name="sandbox_session_settle_end_idx",
+            ),
         ]
 
     def __str__(self):
