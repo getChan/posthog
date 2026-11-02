@@ -36,6 +36,8 @@ from posthog.hogql_queries.validation.rules import DisallowUnsupportedDataWareho
 from posthog.hogql_queries.validation.validation import QueryValidationRule
 
 from products.actions.backend.models.action import Action
+from products.product_analytics.backend.hogql_queries.databricks_insights import DatabricksInsights
+from products.product_analytics.backend.hogql_queries.databricks_sql import AnalyticsSQL, AnalyticsWindow
 from products.product_analytics.backend.hogql_queries.lifecycle.lifecycle_validation_rules import (
     RequireLifecycleDataWarehouseSeriesForCustomAggregationTarget,
 )
@@ -127,6 +129,7 @@ class LifecycleQueryRunner(AnalyticsQueryRunner[LifecycleQueryResponse]):
     def to_actors_query(
         self, day: Optional[str] = None, status: Optional[str] = None
     ) -> ast.SelectQuery | ast.SelectSetQuery:
+        AnalyticsSQL.require_actor_backend(self.team.pk)
         with self.timings.measure("actors_query"):
             exprs: list[ast.Expr] = []
             if day is not None:
@@ -170,7 +173,24 @@ class LifecycleQueryRunner(AnalyticsQueryRunner[LifecycleQueryResponse]):
             ],
         )
 
+    def get_cache_key_variant(self) -> str:
+        return super().get_cache_key_variant() + AnalyticsSQL.cache_variant(self.team.pk)
+
     def _calculate(self) -> LifecycleQueryResponse:
+        if AnalyticsSQL.enabled(self.team.pk):
+            DatabricksInsights.validate_query(self.query)
+            return DatabricksInsights(
+                self.query,
+                AnalyticsWindow(
+                    team_id=self.team.pk,
+                    start=self.query_date_range.date_from(),
+                    end=self.query_date_range.date_to(),
+                    timezone=self.team.timezone,
+                    interval=self.query_date_range.interval_name,
+                    week_start_day=self.team.week_start_day,
+                ),
+            ).calculate()
+
         query = self.to_query()
         hogql = self.response_hogql(query)
 

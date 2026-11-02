@@ -84,7 +84,8 @@ from posthog.utils import multisort
 from products.actions.backend.models.action import Action
 from products.cohorts.backend.models.cohort import Cohort
 from products.event_definitions.backend.models.property_definition import PropertyDefinition
-from products.product_analytics.backend.hogql_queries.trends.databricks import DatabricksTrends
+from products.product_analytics.backend.hogql_queries.databricks_insights import DatabricksInsights
+from products.product_analytics.backend.hogql_queries.databricks_sql import AnalyticsSQL, AnalyticsWindow
 from products.product_analytics.backend.hogql_queries.trends.display import TrendsDisplay
 from products.product_analytics.backend.hogql_queries.trends.series_with_extras import SeriesWithExtras
 from products.product_analytics.backend.hogql_queries.trends.trend_validation_rules import (
@@ -253,6 +254,7 @@ class TrendsQueryRunner(AnalyticsQueryRunner[TrendsQueryResponse]):
         return query
 
     def to_actors_query(self, *args, **kwargs) -> ast.SelectQuery:
+        AnalyticsSQL.require_actor_backend(self.team.pk)
         with self.timings.measure("trends_to_actors_query"):
             query_builder = self._get_trends_actors_query_builder(*args, **kwargs)
             query = query_builder.build_actors_query()
@@ -416,18 +418,23 @@ class TrendsQueryRunner(AnalyticsQueryRunner[TrendsQueryResponse]):
             compare=res_compare,
         )
 
+    def get_cache_key_variant(self) -> str:
+        return super().get_cache_key_variant() + AnalyticsSQL.cache_variant(self.team.pk)
+
     def _calculate(self):
-        if DatabricksTrends.enabled(self.team.pk):
-            results, has_more = DatabricksTrends.calculate(self)
-            return TrendsQueryResponse(
-                results=results,
-                hasMore=has_more,
-                modifiers=self.modifiers,
-                resolved_date_range=ResolvedDateRangeResponse(
-                    date_from=self.query_date_range.date_from(),
-                    date_to=self.query_date_range.date_to(),
+        if AnalyticsSQL.enabled(self.team.pk):
+            DatabricksInsights.validate_query(self.query)
+            return DatabricksInsights(
+                self.query,
+                AnalyticsWindow(
+                    team_id=self.team.pk,
+                    start=self.query_date_range.date_from(),
+                    end=self.query_date_range.date_to(),
+                    timezone=self.team.timezone,
+                    interval=self.query_date_range.interval_name,
+                    week_start_day=self.team.week_start_day,
                 ),
-            )
+            ).calculate()
 
         if self.query.marketingAnalyticsCostFallback is not None:
             from products.marketing_analytics.backend.facade.queries import resolve_marketing_cost_trend  # noqa: PLC0415 - keeps marketing adapters off the startup path

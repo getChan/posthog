@@ -50,6 +50,8 @@ from posthog.models import Team
 from posthog.models.user import User
 
 from products.actions.backend.models.action import Action
+from products.product_analytics.backend.hogql_queries.databricks_insights import DatabricksInsights
+from products.product_analytics.backend.hogql_queries.databricks_sql import AnalyticsSQL, AnalyticsWindow
 from products.product_analytics.backend.hogql_queries.retention.retention_base_query_fixed import (
     RetentionFixedIntervalBaseQueryBuilder,
 )
@@ -666,7 +668,24 @@ class RetentionQueryRunner(AnalyticsQueryRunner[RetentionQueryResponse]):
 
         return labels
 
+    def get_cache_key_variant(self) -> str:
+        return super().get_cache_key_variant() + AnalyticsSQL.cache_variant(self.team.pk)
+
     def _calculate(self) -> RetentionQueryResponse:
+        if AnalyticsSQL.enabled(self.team.pk):
+            DatabricksInsights.validate_query(self.query)
+            return DatabricksInsights(
+                self.query,
+                AnalyticsWindow(
+                    team_id=self.team.pk,
+                    start=self.query_date_range.date_from(),
+                    end=self.query_date_range.date_to(),
+                    timezone=self.team.timezone,
+                    interval=self.query_date_range.interval_name,
+                    week_start_day=self.team.week_start_day,
+                ),
+            ).calculate()
+
         query = self.to_query()
         hogql = self.response_hogql(query)
 
@@ -840,6 +859,7 @@ class RetentionQueryRunner(AnalyticsQueryRunner[RetentionQueryResponse]):
     def to_actors_query(
         self, interval: Optional[int] = None, breakdown_values: str | list[str] | int | None = None
     ) -> ast.SelectQuery:
+        AnalyticsSQL.require_actor_backend(self.team.pk)
         with self.timings.measure("retention_actors_query"):
             # Cohort breakdowns require special handling as cohort breakdowns unlike say event breakdowns
             # run the original retention query for each cohort value separately and then combine the results

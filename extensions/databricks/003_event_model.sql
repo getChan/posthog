@@ -1,0 +1,28 @@
+ALTER TABLE workspace.posthog.events ADD COLUMNS (
+    elements_chain STRING,
+    person_created_at TIMESTAMP,
+    group0_properties STRING,
+    group1_properties STRING,
+    group2_properties STRING,
+    group3_properties STRING,
+    group4_properties STRING,
+    group0_created_at TIMESTAMP,
+    group1_created_at TIMESTAMP,
+    group2_created_at TIMESTAMP,
+    group3_created_at TIMESTAMP,
+    group4_created_at TIMESTAMP,
+    person_mode STRING,
+    historical_migration BOOLEAN,
+    temporary_properties STRING,
+    properties_null_keys ARRAY<STRING>,
+    temporary_properties_null_keys ARRAY<STRING>,
+    person_properties_null_keys ARRAY<STRING>,
+    inserted_at TIMESTAMP,
+    captured_at TIMESTAMP,
+    consumer_breadcrumbs ARRAY<STRING>,
+    total_event_size BIGINT,
+    _timestamp TIMESTAMP,
+    _offset DECIMAL(20,0),
+    _partition DECIMAL(20,0)
+);
+ALTER TABLE workspace.posthog.persons ADD COLUMNS (last_seen_at TIMESTAMP);

@@ -50,6 +50,8 @@ from posthog.models import Team
 from posthog.models.user import User
 
 from products.cohorts.backend.models.cohort import Cohort
+from products.product_analytics.backend.hogql_queries.databricks_insights import DatabricksInsights
+from products.product_analytics.backend.hogql_queries.databricks_sql import AnalyticsSQL, AnalyticsWindow
 from products.product_analytics.backend.hogql_queries.funnels import FunnelTrendsUDF, FunnelUDF
 from products.product_analytics.backend.hogql_queries.funnels.funnel_query_context import FunnelQueryContext
 from products.product_analytics.backend.hogql_queries.funnels.funnel_time_to_convert import FunnelTimeToConvertUDF
@@ -133,6 +135,7 @@ class FunnelsQueryRunner(AnalyticsQueryRunner[FunnelsQueryResponse]):
         return self.funnel_class.get_query()
 
     def to_actors_query(self) -> ast.SelectQuery:
+        AnalyticsSQL.require_actor_backend(self.team.pk)
         # A persons modal opened from a 'previous' compare bar must return actors from the shifted
         # window only; every other case uses the source's own (current) date range.
         actors_query = self.context.actorsQuery
@@ -264,7 +267,24 @@ class FunnelsQueryRunner(AnalyticsQueryRunner[FunnelsQueryResponse]):
         ]
         return ", ".join(labels)
 
+    def get_cache_key_variant(self) -> str:
+        return super().get_cache_key_variant() + AnalyticsSQL.cache_variant(self.team.pk)
+
     def _calculate(self):
+        if AnalyticsSQL.enabled(self.team.pk):
+            DatabricksInsights.validate_query(self.query)
+            return DatabricksInsights(
+                self.query,
+                AnalyticsWindow(
+                    team_id=self.team.pk,
+                    start=self.query_date_range.date_from(),
+                    end=self.query_date_range.date_to(),
+                    timezone=self.team.timezone,
+                    interval=self.query_date_range.interval_name,
+                    week_start_day=self.team.week_start_day,
+                ),
+            ).calculate()
+
         if self._is_compare_active():
             return self._calculate_compare()
         return self._calculate_single_period(self.funnel_class)

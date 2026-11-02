@@ -43,6 +43,8 @@ from posthog.models.user import User
 
 from products.actions.backend.models.action import Action
 from products.cohorts.backend.models.util import get_count_operator, get_count_operator_ast
+from products.product_analytics.backend.hogql_queries.databricks_insights import DatabricksInsights
+from products.product_analytics.backend.hogql_queries.databricks_sql import AnalyticsSQL, AnalyticsWindow
 
 
 class SeriesWithExtras:
@@ -272,6 +274,7 @@ class StickinessQueryRunner(AnalyticsQueryRunner[StickinessQueryResponse]):
     def to_actors_query(
         self, interval_num: Optional[int] = None, operator: Optional[str] = None
     ) -> ast.SelectQuery | ast.SelectSetQuery:
+        AnalyticsSQL.require_actor_backend(self.team.pk)
         queries: list[ast.SelectQuery] = []
 
         for series in self.series:
@@ -309,7 +312,24 @@ class StickinessQueryRunner(AnalyticsQueryRunner[StickinessQueryResponse]):
 
         return ast.SelectSetQuery.create_from_queries(queries, "UNION ALL")
 
+    def get_cache_key_variant(self) -> str:
+        return super().get_cache_key_variant() + AnalyticsSQL.cache_variant(self.team.pk)
+
     def _calculate(self) -> StickinessQueryResponse:
+        if AnalyticsSQL.enabled(self.team.pk):
+            DatabricksInsights.validate_query(self.query)
+            return DatabricksInsights(
+                self.query,
+                AnalyticsWindow(
+                    team_id=self.team.pk,
+                    start=self.query_date_range.date_from(),
+                    end=self.query_date_range.date_to(),
+                    timezone=self.team.timezone,
+                    interval=self.query_date_range.interval_name,
+                    week_start_day=self.team.week_start_day,
+                ),
+            ).calculate()
+
         queries = self.to_queries()
         response_hogql = get_response_hogql(queries, team=self.team, timings=self.timings, modifiers=self.modifiers)
 
