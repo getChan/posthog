@@ -182,16 +182,10 @@ export interface cohortsModelActions {
         errorObject?: any
     }
     loadCohortsSuccess: (
-        cohorts: {
-            count: number
-            results: CohortType[]
-        },
+        cohorts: CountedPaginatedResponse<CohortType>,
         payload?: any
     ) => {
-        cohorts: {
-            count: number
-            results: CohortType[]
-        }
+        cohorts: CountedPaginatedResponse<CohortType>
         payload?: any
     }
     setPollTimeout: (pollTimeout: number | null) => {
