@@ -235,13 +235,19 @@ export const cohortsModel = kea<cohortsModelType>([
         cohorts: {
             __default: { count: 0, results: [] } as CountedPaginatedResponse<CohortType>,
             loadCohorts: async () => {
+                if (!isAuthenticatedTeam(values.currentTeam)) {
+                    return values.cohorts
+                }
                 const [response, { processCohort }] = await Promise.all([
-                    api.cohorts.listPaginated({ limit: MAX_COHORTS_FOR_FULL_LIST }),
+                    cohortsApi.cohortsList(String(values.currentTeam.project_id), {
+                        limit: MAX_COHORTS_FOR_FULL_LIST,
+                    }),
                     retryImport(() => import('scenes/cohorts/processCohort')),
                 ])
                 return {
                     count: response.count,
-                    results: response.results.map((cohort) => processCohort(cohort)),
+                    // The shared cache still exposes the legacy shape to its consumers.
+                    results: response.results.map((cohort) => processCohort(cohort as unknown as CohortType)),
                 }
             },
         },
